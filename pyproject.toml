@@ -1,8 +1,10 @@
 # poetry export --without-hashes --format=requirements.txt > requirements.txt && twine upload -r pypi dist/*
+# eval "$(ssh-agent -s)"
+# ssh-add ~/.ssh/id_ed25519_
 
 [tool.poetry]
 name = "bgsutils"
-version = "0.1.0"
+version = "0.1.1"
 description = "Be GeoSpatial public utils python tools"
 authors = ["José Beltrán <102664984+jose-begeospatial@users.noreply.github.com>"]
 license = "MIT"

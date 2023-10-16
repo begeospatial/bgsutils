@@ -2,6 +2,18 @@ import os
 import sys
 from importlib.util import spec_from_file_location, module_from_spec
 import datetime
+import traceback
+from datetime import datetime
+
+
+def log_error(self, error_message, errorType:str = ""):
+    """Manually log errors to a uniquely named file."""
+    log_filename = f"datastore_errors_{errorType}_{datetime.utcnow().strftime('%Y-%m-%d-T%H%M%S')}.log"
+    print(error_message, errorType)
+    trace_error = traceback.print_exc()
+    with open(log_filename, 'a', encoding='utf-8') as log_file:
+        log_entry = f"{datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} - ERROR - {error_message}\n | TRACEBACK | : {trace_error}\n"
+        log_file.write(log_entry)
 
 
 def find_value_in_dict(data:dict, search_value:str, nested_path:list=[])->list:
