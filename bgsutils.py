@@ -1,19 +1,58 @@
 import os
 import sys
+from functools import wraps
 from importlib.util import spec_from_file_location, module_from_spec
 import datetime
 import traceback
 from datetime import datetime
 
 
-def log_error(self, error_message, errorType:str = ""):
-    """Manually log errors to a uniquely named file."""
-    log_filename = f"datastore_errors_{errorType}_{datetime.utcnow().strftime('%Y-%m-%d-T%H%M%S')}.log"
-    print(error_message, errorType)
-    trace_error = traceback.print_exc()
-    with open(log_filename, 'a', encoding='utf-8') as log_file:
-        log_entry = f"{datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} - ERROR - {error_message}\n | TRACEBACK | : {trace_error}\n"
-        log_file.write(log_entry)
+def is_writable(directory):
+    """Check if a directory is writable."""
+    try:
+        test_file_path = os.path.join(directory, "test_writable.txt")
+        with open(test_file_path, 'w') as f:
+            f.write("test")
+        os.remove(test_file_path)
+        return True
+    except Exception:
+        return False
+    
+
+def log_error(error_message):
+    """
+    Manually log errors to a uniquely named file.
+    """
+    home_dir = os.path.expanduser("~")
+    log_folder = os.path.join(home_dir, "error_logs")
+    
+    if is_writable(home_dir):
+        os.makedirs(log_folder, exist_ok=True)
+        log_filename = f"{log_folder}/EXCEPTION_ERROR_{datetime.utcnow().strftime('%Y-%m-%d-T%H%M%S')}.log"
+        
+        with open(log_filename, 'a', encoding='utf-8') as log_file:
+            log_entry = f"{datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} - ERROR - {error_message}\n"
+            log_file.write(log_entry)
+    else:
+        print("Home directory is not writable. Exception details:")
+        print(error_message)
+
+
+def exception_handler(func):
+    """
+    Decorator to handle exceptions and log them.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            trace_error = traceback.format_exc()
+            if trace_error is None:
+                trace_error = ''
+            
+            log_error(f'**Exception:** {trace_error} {e}')
+    return wrapper
 
 
 def find_value_in_dict(data:dict, search_value:str, nested_path:list=[])->list:
